@@ -34,4 +34,11 @@ defmodule SharedSettings do
       error -> error
     end
   end
+
+  def exists?(name) when is_atom(name) do
+    case get(name) do
+      {:ok, _} -> true
+      _ -> false
+    end
+  end
 end

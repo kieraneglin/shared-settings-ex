@@ -40,4 +40,20 @@ defmodule SharedSettingsTest do
       assert {:error, :not_found} = SharedSettings.get(name)
     end
   end
+
+  describe "exists?/1" do
+    test "returns true when a setting exists" do
+      name = unique_atom()
+
+      SharedSettings.put(name, :string, "asdf")
+
+      assert true == SharedSettings.exists?(name)
+    end
+
+    test "returns false when a setting does not exist" do
+      name = unique_atom()
+
+      assert false == SharedSettings.exists?(name)
+    end
+  end
 end
