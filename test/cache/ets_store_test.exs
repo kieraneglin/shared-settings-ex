@@ -32,8 +32,8 @@ defmodule SharedSettings.Cache.EtsStoreTest do
       assert {:ok, ^new_setting} = EtsStore.get(name)
     end
 
-    test "returns {:ok, %Setting{}}", %{setting: setting} do
-      assert {:ok, ^setting} = EtsStore.put(setting)
+    test "returns {:ok, String.t()}", %{name: name, setting: setting} do
+      assert {:ok, ^name} = EtsStore.put(setting)
     end
   end
 
