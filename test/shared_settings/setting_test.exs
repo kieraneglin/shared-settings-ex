@@ -6,6 +6,7 @@ defmodule SharedSettings.SettingTest do
   alias SharedSettings.Cache.EtsStore
 
   setup do
+    flush_redis()
     EtsStore.flush()
     name = random_string()
 

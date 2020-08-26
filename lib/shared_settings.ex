@@ -12,7 +12,8 @@ defmodule SharedSettings do
   alias SharedSettings.Setting
 
   # TODO: swap this out for config once we have >1 storage adapter
-  @store SharedSettings.Cache.EtsStore
+  @store SharedSettings.Persistence.Redis
+  @cache SharedSettings.Cache.EtsStore
 
   def put(name, type, value) when is_atom(name) and is_atom(type) do
     setting_result =
@@ -33,6 +34,12 @@ defmodule SharedSettings do
       {:ok, setting} -> Setting.restore_value(setting)
       error -> error
     end
+  end
+
+  def delete(name) when is_atom(name) do
+    stringified_name = Atom.to_string(name)
+
+    @store.delete(stringified_name)
   end
 
   def exists?(name) when is_atom(name) do

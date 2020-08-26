@@ -2,6 +2,15 @@ defmodule SharedSettingsTest do
   use ExUnit.Case
   import SharedSettings.TestUtils
 
+  alias SharedSettings.Cache.EtsStore
+
+  setup do
+    flush_redis()
+    EtsStore.flush()
+
+    :ok
+  end
+
   describe "put/3" do
     test "values are stored" do
       name = unique_atom()
