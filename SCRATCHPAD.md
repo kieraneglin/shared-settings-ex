@@ -50,6 +50,7 @@ list_of(:number) # For arrays of a given type. Would only accept 1 type to start
 - The storage system should be easy to implement in all langs (so someone could write a Go adaptor if they wanted)
   - No lang-specific marshalling or structures (in a way that other langs couldn't parse out)
 - Should provide multiple storage adaptors (SQL, redis, memcached, etc)
+  - (consider) Memcached should be cache only, but should Redis count as persistence in the same way a DB would?
   - (consider) should leverage lang-specific caching when available (eg: ETS).  Source of truth should always be something sharable (redis, etc)
 - The UI libs should be separate/optional
 - (less important) should allow for easy plugin creation (eg: supporting new datatypes)
