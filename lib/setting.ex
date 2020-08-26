@@ -55,6 +55,33 @@ defmodule SharedSettings.Setting do
     end
   end
 
+  def restore_value(%Setting{type: "string", value: value}) do
+    {:ok, value}
+  end
+
+  def restore_value(%Setting{type: "number", value: value}) do
+    if String.contains?(value, ".") do
+      {:ok, String.to_float(value)}
+    else
+      {:ok, String.to_integer(value)}
+    end
+  end
+
+  def restore_value(%Setting{type: "boolean", value: value}) do
+    case value do
+      "1" -> {:ok, true}
+      "0" -> {:ok, false}
+    end
+  end
+
+  def restore_value(%Setting{type: "range", value: value}) do
+    [lower, upper] = value
+      |> String.split(",")
+      |> Enum.map(&String.to_integer/1)
+
+    {:ok, lower..upper}
+  end
+
   defp is_range(%Range{}), do: true
   defp is_range(_), do: false
 end

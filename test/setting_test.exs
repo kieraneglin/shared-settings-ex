@@ -67,4 +67,36 @@ defmodule SharedSettings.SettingTest do
       {:error, :incompatible_type} = Setting.build_setting(name, :range, "str")
     end
   end
+
+  describe "restore_value/1" do
+    test "restores string values", %{name: name} do
+      {:ok, setting} = Setting.build_setting(name, :string, "asdf")
+
+      assert {:ok, "asdf"} = Setting.restore_value(setting)
+    end
+
+    test "restores number values", %{name: name} do
+      {:ok, number} = Setting.build_setting(name, :number, 123)
+      {:ok, neg_number} = Setting.build_setting(name, :number, -123)
+      {:ok, float} = Setting.build_setting(name, :number, 12.3)
+
+      assert {:ok, 123} = Setting.restore_value(number)
+      assert {:ok, -123} = Setting.restore_value(neg_number)
+      assert {:ok, 12.3} = Setting.restore_value(float)
+    end
+
+    test "restores boolean values", %{name: name} do
+      {:ok, true_setting} = Setting.build_setting(name, :boolean, true)
+      {:ok, false_setting} = Setting.build_setting(name, :boolean, false)
+
+      assert {:ok, true} = Setting.restore_value(true_setting)
+      assert {:ok, false} = Setting.restore_value(false_setting)
+    end
+
+    test "restores range values", %{name: name} do
+      {:ok, setting} = Setting.build_setting(name, :range, 2..4)
+
+      assert {:ok, 2..4} = Setting.restore_value(setting)
+    end
+  end
 end
