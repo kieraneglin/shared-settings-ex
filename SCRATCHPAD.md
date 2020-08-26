@@ -54,4 +54,3 @@ list_of(:number) # For arrays of a given type. Would only accept 1 type to start
   - (consider) should leverage lang-specific caching when available (eg: ETS).  Source of truth should always be something sharable (redis, etc)
 - The UI libs should be separate/optional
 - (less important) should allow for easy plugin creation (eg: supporting new datatypes)
-
