@@ -59,7 +59,7 @@ defmodule SharedSettings.Cache.EtsStore do
   def handle_call({:put, setting = %Setting{name: name}}, _from, state) do
     :ets.insert(@table_name, {name, {setting}})
 
-    {:reply, {:ok, setting}, state}
+    {:reply, {:ok, name}, state}
   end
 
   def handle_call({:delete, name}, _from, state) do

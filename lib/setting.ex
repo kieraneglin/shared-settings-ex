@@ -75,7 +75,8 @@ defmodule SharedSettings.Setting do
   end
 
   def restore_value(%Setting{type: "range", value: value}) do
-    [lower, upper] = value
+    [lower, upper] =
+      value
       |> String.split(",")
       |> Enum.map(&String.to_integer/1)
 

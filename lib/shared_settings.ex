@@ -9,12 +9,29 @@ defmodule SharedSettings do
   for the purpose of easing runtime tweaking of knobs.
   """
 
-  # alias SharedSettings.Setting
+  alias SharedSettings.Setting
 
   # TODO: swap this out for config once we have >1 storage adapter
-  # @store SharedSettings.Cache.EtsStore
+  @store SharedSettings.Cache.EtsStore
 
-  # def create(name, type, value) when is_atom(name) and is_atom(type) do
+  def put(name, type, value) when is_atom(name) and is_atom(type) do
+    setting_result =
+      name
+      |> Atom.to_string()
+      |> Setting.build_setting(type, value)
 
-  # end
+    case setting_result do
+      {:ok, setting} -> @store.put(setting)
+      error -> error
+    end
+  end
+
+  def get(name) when is_atom(name) do
+    stringified_name = Atom.to_string(name)
+
+    case @store.get(stringified_name) do
+      {:ok, setting} -> Setting.restore_value(setting)
+      error -> error
+    end
+  end
 end
