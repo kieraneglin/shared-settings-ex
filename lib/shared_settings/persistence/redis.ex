@@ -10,7 +10,7 @@ if Code.ensure_loaded?(Redix) do
     @default_redis_config [
       name: @conn,
       sync_connect: false,
-      host: "localhost",
+      host: "redis",
       port: 6379,
       database: 0
     ]
