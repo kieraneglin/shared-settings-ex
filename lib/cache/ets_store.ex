@@ -1,6 +1,8 @@
 defmodule SharedSettings.Cache.EtsStore do
   use GenServer
 
+  alias SharedSettings.Setting
+
   @behaviour SharedSettings.Store
 
   @table_name :shared_settings_cache
@@ -34,7 +36,7 @@ defmodule SharedSettings.Cache.EtsStore do
     end
   end
 
-  def put(setting) do
+  def put(setting = %Setting{}) do
     GenServer.call(__MODULE__, {:put, setting})
   end
 
@@ -54,7 +56,7 @@ defmodule SharedSettings.Cache.EtsStore do
     {:ok, %{tab_name: @table_name}}
   end
 
-  def handle_call({:put, setting = %{name: name}}, _from, state) do
+  def handle_call({:put, setting = %Setting{name: name}}, _from, state) do
     :ets.insert(@table_name, {name, {setting}})
 
     {:reply, {:ok, setting}, state}
