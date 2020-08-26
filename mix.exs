@@ -15,8 +15,8 @@ defmodule SharedSettings.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger],
-      mod: {SharedSettings.Application, []}
+      mod: {SharedSettings.Application, []},
+      extra_applications: [:logger]
     ]
   end
 
@@ -26,8 +26,8 @@ defmodule SharedSettings.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
-      {:redix, "~> 0.9", optional: true},
+      {:redix, "~> 0.9"},
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
     ]
   end
 end
