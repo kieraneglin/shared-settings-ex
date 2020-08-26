@@ -26,7 +26,8 @@ defmodule SharedSettings.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:redix, "~> 0.9", optional: true},
     ]
   end
 end
