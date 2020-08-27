@@ -27,7 +27,8 @@ defmodule SharedSettings.MixProject do
   defp deps do
     [
       {:redix, "~> 0.9"},
-      {:credo, "~> 1.4", only: [:dev, :test], runtime: false}
+      {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
+      {:mock, "~> 0.3.0", only: :test}
     ]
   end
 end
