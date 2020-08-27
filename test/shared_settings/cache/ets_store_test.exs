@@ -1,7 +1,9 @@
 defmodule SharedSettings.Cache.EtsStoreTest do
-  use ExUnit.Case
+  use ExUnit.Case, async: false
+  import Mock
   import SharedSettings.TestUtils
 
+  alias SharedSettings.Config
   alias SharedSettings.Setting
   alias SharedSettings.Cache.EtsStore
 
@@ -15,7 +17,7 @@ defmodule SharedSettings.Cache.EtsStoreTest do
 
   describe "put/1" do
     test "stores a setting", %{name: name, setting: setting} do
-      assert {:error, :not_found} = EtsStore.get(name)
+      assert {:error, :miss, :not_found} = EtsStore.get(name)
 
       EtsStore.put(setting)
 
@@ -45,7 +47,15 @@ defmodule SharedSettings.Cache.EtsStoreTest do
     end
 
     test "returns :not_found error if setting not found", %{name: name} do
-      assert {:error, :not_found} = EtsStore.get(name)
+      assert {:error, :miss, :not_found} = EtsStore.get(name)
+    end
+
+    test "returns an expiration error if TTL has passed", %{name: name, setting: setting} do
+      EtsStore.put(setting)
+
+      timetravel by: Config.cache_ttl() + 1 do
+        assert {:error, :miss, :expired} = EtsStore.get(name)
+      end
     end
   end
 
@@ -56,11 +66,11 @@ defmodule SharedSettings.Cache.EtsStoreTest do
 
       :ok = EtsStore.delete(name)
 
-      assert {:error, :not_found} = EtsStore.get(name)
+      assert {:error, :miss, :not_found} = EtsStore.get(name)
     end
 
     test "returns :ok if setting not found", %{name: name} do
-      assert {:error, :not_found} = EtsStore.get(name)
+      assert {:error, :miss, :not_found} = EtsStore.get(name)
 
       assert :ok = EtsStore.delete(name)
     end
