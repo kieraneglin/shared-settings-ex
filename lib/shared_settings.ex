@@ -9,11 +9,11 @@ defmodule SharedSettings do
   for the purpose of easing runtime tweaking of knobs.
   """
 
+  alias SharedSettings.Config
   alias SharedSettings.Setting
 
-  # TODO: swap this out for config
-  @cache SharedSettings.Cache.EtsStore
-  @store SharedSettings.Persistence.Redis
+  @cache Config.cache_adapter()
+  @store Config.storage_adapter()
 
   def put(name, type, value) when is_atom(name) and is_atom(type) do
     setting_result =
