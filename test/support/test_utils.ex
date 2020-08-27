@@ -22,18 +22,18 @@ defmodule SharedSettings.TestUtils do
     Redix.command!(Redis, ["DEL" | keys])
   end
 
-  defmacro timetravel([by: offset], [do: body]) do
+  defmacro timetravel([by: offset], do: body) do
     quote do
       fake_now = Timestamp.now() + unquote(offset)
 
-      with_mock(Timestamp, [
-        now: fn() ->
+      with_mock(Timestamp,
+        now: fn ->
           fake_now
         end,
-        expired?: fn(timestamp, ttl) ->
+        expired?: fn timestamp, ttl ->
           :meck.passthrough([timestamp, ttl])
         end
-      ]) do
+      ) do
         unquote(body)
       end
     end

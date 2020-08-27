@@ -6,6 +6,6 @@ defmodule SharedSettings.Utilities.Timestamp do
   end
 
   def expired?(timestamp, ttl) do
-    (timestamp + ttl) < Timestamp.now()
+    timestamp + ttl < Timestamp.now()
   end
 end

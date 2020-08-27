@@ -53,7 +53,7 @@ defmodule SharedSettings.Cache.EtsStoreTest do
     test "returns an expiration error if TTL has passed", %{name: name, setting: setting} do
       EtsStore.put(setting)
 
-      timetravel by: (Config.cache_ttl + 1) do
+      timetravel by: Config.cache_ttl() + 1 do
         assert {:error, :miss, :expired} = EtsStore.get(name)
       end
     end
