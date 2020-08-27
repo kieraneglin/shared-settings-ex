@@ -1,4 +1,3 @@
-# TODO: ensure that Redix is optional and uses the parent's installation
 if Code.ensure_loaded?(Redix) do
   defmodule SharedSettings.Persistence.Redis do
     alias SharedSettings.Setting

@@ -16,7 +16,7 @@ defmodule SharedSettings.MixProject do
   def application do
     [
       mod: {SharedSettings.Application, []},
-      extra_applications: [:logger]
+      extra_applications: [:logger, :redix]
     ]
   end
 
@@ -26,7 +26,7 @@ defmodule SharedSettings.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:redix, "~> 0.9"},
+      {:redix, "~> 0.9", optional: true},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:mock, "~> 0.3.0", only: :test}
     ]
