@@ -1,23 +1,23 @@
 if Code.ensure_loaded?(Redix) do
   defmodule SharedSettings.Persistence.Redis do
+    alias SharedSettings.Config
     alias SharedSettings.Setting
 
     @behaviour SharedSettings.Store
 
-    # TODO: remove and put into config
     @conn __MODULE__
-    @default_redis_config [
-      name: @conn,
-      sync_connect: false,
-      host: "localhost",
-      port: 6379,
-      database: 0
-    ]
-
+    @conn_options [name: @conn, sync_connect: false]
     @prefix "shared_settings"
 
     def worker_spec do
-      Redix.child_spec(@default_redis_config)
+      config = case Config.redis_config() do
+        uri when is_binary(uri) ->
+          {uri, @conn_options}
+        opts when is_list(opts) ->
+          Keyword.merge(opts, @conn_options)
+      end
+
+      Redix.child_spec(config)
     end
 
     def get(setting_name) do
