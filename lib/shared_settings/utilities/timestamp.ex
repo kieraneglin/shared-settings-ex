@@ -1,4 +1,6 @@
 defmodule SharedSettings.Utilities.Timestamp do
+  @moduledoc false
+
   alias __MODULE__
 
   def now do

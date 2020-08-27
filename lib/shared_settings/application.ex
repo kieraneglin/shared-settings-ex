@@ -1,4 +1,6 @@
 defmodule SharedSettings.Application do
+  @moduledoc false
+
   use Application
 
   alias SharedSettings.Cache.EtsStore

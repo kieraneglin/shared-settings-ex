@@ -1,10 +1,5 @@
 defmodule SharedSettings.Setting do
-  @moduledoc """
-  Provides a struct/type for the settings that go in and out of storage.
-
-  The methods here aren't intended to be used on their own.
-  SharedSettings should be the module you interface with
-  """
+  @moduledoc false
 
   alias __MODULE__
 

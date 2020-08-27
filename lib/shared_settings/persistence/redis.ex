@@ -1,5 +1,7 @@
 if Code.ensure_loaded?(Redix) do
   defmodule SharedSettings.Persistence.Redis do
+    @moduledoc false
+
     alias SharedSettings.Config
     alias SharedSettings.Setting
 

@@ -1,4 +1,6 @@
 defmodule SharedSettings.Config do
+  @moduledoc false
+
   @default_redis_config [
     host: "localhost",
     port: 6379,
