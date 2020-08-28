@@ -12,12 +12,14 @@ if Code.ensure_loaded?(Redix) do
     @prefix "shared_settings"
 
     def worker_spec do
-      config = case Config.redis_config() do
-        uri when is_binary(uri) ->
-          {uri, @conn_options}
-        opts when is_list(opts) ->
-          Keyword.merge(opts, @conn_options)
-      end
+      config =
+        case Config.redis_config() do
+          uri when is_binary(uri) ->
+            {uri, @conn_options}
+
+          opts when is_list(opts) ->
+            Keyword.merge(opts, @conn_options)
+        end
 
       Redix.child_spec(config)
     end

@@ -23,8 +23,10 @@ defmodule SharedSettings.Config do
     case Application.get_env(:shared_settings, :redis, []) do
       uri when is_binary(uri) ->
         uri
+
       opts when is_list(opts) ->
         Keyword.merge(@default_redis_config, opts)
+
       {:system, var} when is_binary(var) ->
         System.get_env(var)
     end
