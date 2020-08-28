@@ -1,4 +1,6 @@
 defmodule SharedSettings.Cache.EtsStore do
+  @moduledoc false
+
   use GenServer
 
   alias SharedSettings.Config

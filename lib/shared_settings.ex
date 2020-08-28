@@ -1,5 +1,5 @@
 defmodule SharedSettings do
-  @moduledoc """
+  @moduledoc ~S"""
   SharedSettings is a library for fetching and updating settings at runtime.
 
   The goal of this is to provide a simple, language-agnostic storage interface
@@ -9,12 +9,33 @@ defmodule SharedSettings do
   for the purpose of easing runtime tweaking of knobs.
   """
 
+  alias SharedSettings.Config
   alias SharedSettings.Setting
 
-  # TODO: swap this out for config
-  @cache SharedSettings.Cache.EtsStore
-  @store SharedSettings.Persistence.Redis
+  @cache Config.cache_adapter()
+  @store Config.storage_adapter()
 
+  @doc ~S"""
+  Creates or updates a setting.
+
+  Settings are unique by name and creating a second setting with the same name will overwrite the original.
+
+  ## Arguments
+
+  * `name` - An atom representing the name of the setting. Used for fetching/deleting
+  * `type` - An atom of either `:string`, `:number`, `:boolean`, or `:range` that specifies the expected value
+  * `value` - Any data with the type specified by `type`
+
+  ## Returns
+
+  If a setting is successfully stored, a tuple of `:ok` and the setting name as a string is returned.
+
+  If a `value` is specified that doesn't match the `type`, a tuple of `{:error, :incompatible_type}` is returned.
+
+  Any other failures (say, from the storage adaptor) will be returned as-is.
+  Failures to write to cache will not be returned as an error so long as writing to storage succeeds.
+  """
+  @spec put(atom(), atom(), any()) :: {:ok, String.t()} | {:error, any()}
   def put(name, type, value) when is_atom(name) and is_atom(type) do
     setting_result =
       name
@@ -31,6 +52,24 @@ defmodule SharedSettings do
     end
   end
 
+  @doc ~S"""
+  Fetches a setting by name.
+
+  Fetches from cache first and falls back to storage if a setting isn't found/is expired.
+
+  ## Arguments
+
+  * `name` - An atom representing the name of the setting to fetch
+
+  ## Returns
+
+  If a setting is found, returns a tuple of `:ok` and the stored value
+
+  If a setting is not found, returns `{:error, :not_found}`
+
+  If there is an error with the storage adaptor that error is passed straight though as `{:error, any()}`
+  """
+  @spec get(atom()) :: {:ok, any()} | {:error, any()}
   def get(name) when is_atom(name) do
     stringified_name = Atom.to_string(name)
 
@@ -40,6 +79,20 @@ defmodule SharedSettings do
     end
   end
 
+  @doc ~S"""
+  Deletes a setting by name from cache and storage.
+
+  ## Arguments
+
+  * `name` - An atom representing the name of the setting to delete
+
+  ## Returns
+
+  If the setting was deleted `:ok` is returned.
+
+  This method returns `:ok` if the setting wasn't found so it's safe to match on `:ok`
+  """
+  @spec delete(atom()) :: :ok
   def delete(name) when is_atom(name) do
     stringified_name = Atom.to_string(name)
 
@@ -47,6 +100,20 @@ defmodule SharedSettings do
     @store.delete(stringified_name)
   end
 
+  @doc ~S"""
+  Checks whether a given setting exists
+
+  ## Arguments
+
+  * `name` - An atom representing the name of the setting to check
+
+  ## Returns
+
+  Returns a boolean based on if the setting was found.
+
+  This uses the same logic as `get` so cache is hit first
+  """
+  @spec exists?(atom()) :: boolean()
   def exists?(name) when is_atom(name) do
     case get(name) do
       {:ok, _} -> true

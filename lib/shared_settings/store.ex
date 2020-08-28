@@ -25,7 +25,7 @@ defmodule SharedSettings.Store do
   @doc """
   Persists a setting
   """
-  @callback put(setting :: Setting.t()) :: {:ok, Setting.t()} | {:error, any()}
+  @callback put(setting :: Setting.t()) :: {:ok, String.t()} | {:error, any()}
 
   @doc """
   Deletes a setting, identified by name.
