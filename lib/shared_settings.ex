@@ -90,6 +90,8 @@ defmodule SharedSettings do
   The reason it's exposed on the main module is that there's a secondary personal usecase
   for setting presence validation on app boot.
 
+  Since this is hitting the store directly thought should be put into if/how frequently this is called
+
   ## Returns
 
   If successful (even if no settings are found), returns `{:ok, [Setting.t()]}`
