@@ -1,6 +1,6 @@
 defmodule SharedSettings.Store do
   @moduledoc ~S"""
-  A behaviour module for store adapters (cache or persistent)
+  A behaviour module for persistent store adapters
 
   All data values are represented by strings (similar to Redis).
   This means that, regardless of what adaptor is being implemented,
