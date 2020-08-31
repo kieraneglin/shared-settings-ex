@@ -80,6 +80,30 @@ defmodule SharedSettings do
   end
 
   @doc ~S"""
+  Fetches all stored settings.
+
+  This method differs from others in the fact that:
+  1) The cache isn't hit, only the source of truth (ie: the store)
+  2) The raw `Setting.t()` is returned instead of the final re-hydrated value
+
+  Both of these changes come from the fact that this is meant to feed the UI.
+  The reason it's exposed on the main module is that there's a secondary personal usecase
+  for setting presence validation on app boot.
+
+  Since this is hitting the store directly thought should be put into if/how frequently this is called
+
+  ## Returns
+
+  If successful (even if no settings are found), returns `{:ok, [Setting.t()]}`
+
+  If there is an error with the storage adaptor that error is passed straight though as `{:error, any()}`
+  """
+  @spec get_all() :: {:ok, [Setting.t()]} | {:error, any()}
+  def get_all do
+    @store.get_all()
+  end
+
+  @doc ~S"""
   Deletes a setting by name from cache and storage.
 
   ## Arguments

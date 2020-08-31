@@ -1,6 +1,6 @@
 defmodule SharedSettings.Store do
   @moduledoc ~S"""
-  A behaviour module for store adapters (cache or persistent)
+  A behaviour module for persistent store adapters
 
   All data values are represented by strings (similar to Redis).
   This means that, regardless of what adaptor is being implemented,
@@ -21,6 +21,11 @@ defmodule SharedSettings.Store do
   Retrieves a setting by name.
   """
   @callback get(name :: String.t()) :: {:ok, Setting.t()}
+
+  @doc """
+  Retrieves all settings
+  """
+  @callback get_all() :: {:ok, [Setting.t()]}
 
   @doc """
   Persists a setting

@@ -98,6 +98,18 @@ defmodule SharedSettingsTest do
     end
   end
 
+  describe "get_all/0" do
+    test "returns all settings" do
+      # More tests exist in the Redis module tests.  This is more of a sanity check
+      Redis.put(%Setting{name: random_string(), type: "string", value: random_string()})
+      Redis.put(%Setting{name: random_string(), type: "string", value: random_string()})
+
+      {:ok, settings} = Redis.get_all()
+
+      assert length(settings) == 2
+    end
+  end
+
   describe "delete/1" do
     test "values are deleted from cache" do
       string_name = random_string()
