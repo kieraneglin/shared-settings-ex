@@ -7,7 +7,7 @@ defmodule SharedSettings.Cache.EtsStore do
   alias SharedSettings.Setting
   alias SharedSettings.Utilities.Timestamp
 
-  @behaviour SharedSettings.Store
+  @behaviour SharedSettings.Cache
 
   @table_name :shared_settings_cache
   @table_options [

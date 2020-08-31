@@ -23,6 +23,11 @@ defmodule SharedSettings.Store do
   @callback get(name :: String.t()) :: {:ok, Setting.t()}
 
   @doc """
+  Retrieves all settings
+  """
+  @callback get_all() :: {:ok, [Setting.t()]}
+
+  @doc """
   Persists a setting
   """
   @callback put(setting :: Setting.t()) :: {:ok, String.t()} | {:error, any()}
