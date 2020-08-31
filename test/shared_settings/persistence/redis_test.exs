@@ -49,6 +49,35 @@ defmodule SharedSettings.Persistence.RedisTest do
     end
   end
 
+  describe "get_all/0" do
+    test "returns all settings" do
+      setting_one = %Setting{name: random_string(), type: "string", value: random_string()}
+      setting_two = %Setting{name: random_string(), type: "string", value: random_string()}
+      setting_three = %Setting{name: random_string(), type: "string", value: random_string()}
+
+      Redis.put(setting_one)
+      Redis.put(setting_two)
+      Redis.put(setting_three)
+
+      {:ok, settings} = Redis.get_all()
+
+      assert length(settings) == 3
+      assert Enum.find(settings, fn setting -> setting.name == setting_one.name end)
+      assert Enum.find(settings, fn setting -> setting.name == setting_two.name end)
+      assert Enum.find(settings, fn setting -> setting.name == setting_three.name end)
+    end
+
+    test "returns all settings for larger numbers of keys" do
+      Enum.each(0..24, fn _ ->
+        Redis.put(%Setting{name: random_string(), type: "string", value: random_string()})
+      end)
+
+      {:ok, settings} = Redis.get_all()
+
+      assert length(settings) == 25
+    end
+  end
+
   describe "delete/1" do
     test "deletes specified setting", %{name: name, setting: setting} do
       Redis.put(setting)
