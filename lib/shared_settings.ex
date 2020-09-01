@@ -25,8 +25,8 @@ defmodule SharedSettings do
 
   ## Arguments
 
-  * `name` - An atom representing the name of the setting. Used for fetching/deleting
-  * `type` - An atom of either `:string`, `:number`, `:boolean`, or `:range` that specifies the expected value
+  * `name` - An atom or string representing the name of the setting. Used for fetching/deleting
+  * `type` - An atom or string of either `string`, `number`, `boolean`, or `range` that specifies the expected value
   * `value` - Any data with the type specified by `type`
 
   ## Returns
@@ -74,7 +74,7 @@ defmodule SharedSettings do
 
   ## Arguments
 
-  * `name` - An atom representing the name of the setting to fetch
+  * `name` - An atom or string representing the name of the setting to fetch
 
   ## Returns
 
@@ -84,10 +84,18 @@ defmodule SharedSettings do
 
   If there is an error with the storage adaptor that error is passed straight though as `{:error, any()}`
   """
-  @spec get(atom()) :: {:ok, any()} | {:error, any()}
+  @spec get(setting_name()) :: {:ok, any()} | {:error, any()}
   def get(name) when is_atom(name) do
     stringified_name = Atom.to_string(name)
 
+    do_get(stringified_name)
+  end
+
+  def get(name) when is_binary(name) do
+    do_get(name)
+  end
+
+  defp do_get(stringified_name) do
     case @cache.get(stringified_name) do
       {:ok, setting} -> Setting.restore_value(setting)
       {:error, :miss, _} -> fetch_from_persistence(stringified_name)
@@ -131,10 +139,18 @@ defmodule SharedSettings do
 
   This method returns `:ok` if the setting wasn't found so it's safe to match on `:ok`
   """
-  @spec delete(atom()) :: :ok
+  @spec delete(setting_name()) :: :ok
   def delete(name) when is_atom(name) do
     stringified_name = Atom.to_string(name)
 
+    do_delete(stringified_name)
+  end
+
+  def delete(name) when is_binary(name) do
+    do_delete(name)
+  end
+
+  defp do_delete(stringified_name) do
     @cache.delete(stringified_name)
     @store.delete(stringified_name)
   end
@@ -144,7 +160,7 @@ defmodule SharedSettings do
 
   ## Arguments
 
-  * `name` - An atom representing the name of the setting to check
+  * `name` - An atom or string representing the name of the setting to check
 
   ## Returns
 
@@ -152,8 +168,8 @@ defmodule SharedSettings do
 
   This uses the same logic as `get` so cache is hit first
   """
-  @spec exists?(atom()) :: boolean()
-  def exists?(name) when is_atom(name) do
+  @spec exists?(setting_name()) :: boolean()
+  def exists?(name) when is_atom(name) or is_binary(name) do
     case get(name) do
       {:ok, _} -> true
       _ -> false

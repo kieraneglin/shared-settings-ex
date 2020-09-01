@@ -46,7 +46,9 @@ defmodule SharedSettingsTest do
     end
 
     test "strings are supported for setting names and types" do
-      {:ok, _} = SharedSettings.put(random_string(), "string", "asdf")
+      {:ok, string_name} = SharedSettings.put(random_string(), "string", "asdf")
+
+      assert {:ok, "asdf"} = SharedSettings.get(string_name)
     end
   end
 
@@ -100,6 +102,12 @@ defmodule SharedSettingsTest do
 
       assert {:error, :not_found} = SharedSettings.get(name)
     end
+
+    test "string names are supported for fetching settings" do
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+
+      assert {:ok, "asdf"} = SharedSettings.get(string_name)
+    end
   end
 
   describe "get_all/0" do
@@ -134,6 +142,14 @@ defmodule SharedSettingsTest do
 
       assert {:error, :not_found} = SharedSettings.get(name)
     end
+
+    test "string names are supported for deleting settings" do
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+
+      :ok = SharedSettings.delete(string_name)
+
+      assert {:error, :not_found} = SharedSettings.get(string_name)
+    end
   end
 
   describe "exists?/1" do
@@ -149,6 +165,14 @@ defmodule SharedSettingsTest do
       name = unique_atom()
 
       assert false == SharedSettings.exists?(name)
+    end
+
+    test "string names are supported" do
+      name = random_string()
+
+      SharedSettings.put(name, :string, "asdf")
+
+      assert true == SharedSettings.exists?(name)
     end
   end
 end
