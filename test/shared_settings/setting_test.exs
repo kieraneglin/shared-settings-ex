@@ -67,6 +67,13 @@ defmodule SharedSettings.SettingTest do
     test "non-range values error if range is expected", %{name: name} do
       {:error, :incompatible_type} = Setting.build_setting(name, :range, "str")
     end
+
+    test "strings are supported for type names" do
+      assert {:ok, _} = Setting.build_setting(random_string(), "string", "test_string")
+      assert {:ok, _} = Setting.build_setting(random_string(), "number", 123)
+      assert {:ok, _} = Setting.build_setting(random_string(), "boolean", true)
+      assert {:ok, _} = Setting.build_setting(random_string(), "range", 1..5)
+    end
   end
 
   describe "restore_value/1" do

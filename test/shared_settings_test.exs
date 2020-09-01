@@ -44,6 +44,10 @@ defmodule SharedSettingsTest do
 
       assert {:error, :incompatible_type} = SharedSettings.put(name, :string, 123)
     end
+
+    test "strings are supported for setting names and types" do
+      {:ok, _} = SharedSettings.put(random_string(), "string", "asdf")
+    end
   end
 
   describe "get/1" do
@@ -124,7 +128,7 @@ defmodule SharedSettingsTest do
     test "values are deleted from storage" do
       string_name = random_string()
       name = String.to_atom(string_name)
-      Redis.put(%Setting{name: string_name, type: "string", value: "from cache"})
+      Redis.put(%Setting{name: string_name, type: "string", value: "from store"})
 
       SharedSettings.delete(name)
 

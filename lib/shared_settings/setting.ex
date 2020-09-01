@@ -11,7 +11,7 @@ defmodule SharedSettings.Setting do
   # I'm using conditionals within the block instead of guards since there may be
   # other reasons the guards don't match that don't strictly imply that the
   # wrong type/value combo was passed.
-  def build_setting(name, :string, value) do
+  def build_setting(name, type, value) when type in ["string", :string] do
     if is_binary(value) do
       {:ok, %Setting{name: name, type: "string", value: value}}
     else
@@ -19,7 +19,7 @@ defmodule SharedSettings.Setting do
     end
   end
 
-  def build_setting(name, :number, value) do
+  def build_setting(name, type, value) when type in ["number", :number] do
     if is_integer(value) || is_float(value) do
       stringified_value = to_string(value)
 
@@ -29,7 +29,7 @@ defmodule SharedSettings.Setting do
     end
   end
 
-  def build_setting(name, :boolean, value) do
+  def build_setting(name, type, value) when type in ["boolean", :boolean] do
     if is_boolean(value) do
       stringified_value = if value, do: "1", else: "0"
 
@@ -39,7 +39,7 @@ defmodule SharedSettings.Setting do
     end
   end
 
-  def build_setting(name, :range, value) do
+  def build_setting(name, type, value) when type in ["range", :range] do
     if is_range(value) do
       first..last = value
       stringified_value = "#{first},#{last}"

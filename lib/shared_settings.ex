@@ -15,6 +15,9 @@ defmodule SharedSettings do
   @cache Config.cache_adapter()
   @store Config.storage_adapter()
 
+  @type setting_name :: atom() | String.t()
+  @type setting_type :: atom() | String.t()
+
   @doc ~S"""
   Creates or updates a setting.
 
@@ -35,13 +38,25 @@ defmodule SharedSettings do
   Any other failures (say, from the storage adaptor) will be returned as-is.
   Failures to write to cache will not be returned as an error so long as writing to storage succeeds.
   """
-  @spec put(atom(), atom(), any()) :: {:ok, String.t()} | {:error, any()}
-  def put(name, type, value) when is_atom(name) and is_atom(type) do
+  @spec put(setting_name(), setting_type(), any()) :: {:ok, String.t()} | {:error, any()}
+  def put(name, type, value) when is_atom(name) do
     setting_result =
       name
       |> Atom.to_string()
       |> Setting.build_setting(type, value)
 
+    do_put(setting_result)
+  end
+
+  def put(name, type, value) when is_binary(name) do
+    setting_result =
+      name
+      |> Setting.build_setting(type, value)
+
+    do_put(setting_result)
+  end
+
+  defp do_put(setting_result) do
     case setting_result do
       {:ok, setting} ->
         @cache.put(setting)
