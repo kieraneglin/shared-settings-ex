@@ -44,6 +44,12 @@ defmodule SharedSettingsTest do
 
       assert {:error, :incompatible_type} = SharedSettings.put(name, :string, 123)
     end
+
+    test "strings are supported for setting names and types" do
+      {:ok, string_name} = SharedSettings.put(random_string(), "string", "asdf")
+
+      assert {:ok, "asdf"} = SharedSettings.get(string_name)
+    end
   end
 
   describe "get/1" do
@@ -96,6 +102,12 @@ defmodule SharedSettingsTest do
 
       assert {:error, :not_found} = SharedSettings.get(name)
     end
+
+    test "string names are supported for fetching settings" do
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+
+      assert {:ok, "asdf"} = SharedSettings.get(string_name)
+    end
   end
 
   describe "get_all/0" do
@@ -124,11 +136,19 @@ defmodule SharedSettingsTest do
     test "values are deleted from storage" do
       string_name = random_string()
       name = String.to_atom(string_name)
-      Redis.put(%Setting{name: string_name, type: "string", value: "from cache"})
+      Redis.put(%Setting{name: string_name, type: "string", value: "from store"})
 
       SharedSettings.delete(name)
 
       assert {:error, :not_found} = SharedSettings.get(name)
+    end
+
+    test "string names are supported for deleting settings" do
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+
+      :ok = SharedSettings.delete(string_name)
+
+      assert {:error, :not_found} = SharedSettings.get(string_name)
     end
   end
 
@@ -145,6 +165,14 @@ defmodule SharedSettingsTest do
       name = unique_atom()
 
       assert false == SharedSettings.exists?(name)
+    end
+
+    test "string names are supported" do
+      name = random_string()
+
+      SharedSettings.put(name, :string, "asdf")
+
+      assert true == SharedSettings.exists?(name)
     end
   end
 end
