@@ -12,7 +12,7 @@ defmodule SharedSettings.Store do
   number: "1234"
   string: "any string"
   boolean: "1" or "0"
-  range: "low,high". eg: "1,5"
+  range: "low,high". eg: "1,5" *inclusive*
   """
 
   alias SharedSettings.Setting

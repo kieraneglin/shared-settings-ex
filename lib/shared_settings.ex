@@ -16,7 +16,6 @@ defmodule SharedSettings do
   @store Config.storage_adapter()
 
   @type setting_name :: atom() | String.t()
-  @type setting_type :: atom() | String.t()
 
   @doc ~S"""
   Creates or updates a setting.
@@ -26,32 +25,31 @@ defmodule SharedSettings do
   ## Arguments
 
   * `name` - An atom or string representing the name of the setting. Used for fetching/deleting
-  * `type` - An atom or string of either `string`, `number`, `boolean`, or `range` that specifies the expected value
-  * `value` - Any data with the type specified by `type`
+  * `value` - Any data of type string, number, boolean, or range
 
   ## Returns
 
   If a setting is successfully stored, a tuple of `:ok` and the setting name as a string is returned.
 
-  If a `value` is specified that doesn't match the `type`, a tuple of `{:error, :incompatible_type}` is returned.
+  If `value`'s type isn't supported, {:error, :unsupported_type} is returned
 
   Any other failures (say, from the storage adaptor) will be returned as-is.
   Failures to write to cache will not be returned as an error so long as writing to storage succeeds.
   """
-  @spec put(setting_name(), setting_type(), any()) :: {:ok, String.t()} | {:error, any()}
-  def put(name, type, value) when is_atom(name) do
+  @spec put(setting_name(), any()) :: {:ok, String.t()} | {:error, any()}
+  def put(name, value) when is_atom(name) do
     setting_result =
       name
       |> Atom.to_string()
-      |> Setting.build_setting(type, value)
+      |> Setting.build_setting(value)
 
     do_put(setting_result)
   end
 
-  def put(name, type, value) when is_binary(name) do
+  def put(name, value) when is_binary(name) do
     setting_result =
       name
-      |> Setting.build_setting(type, value)
+      |> Setting.build_setting(value)
 
     do_put(setting_result)
   end
