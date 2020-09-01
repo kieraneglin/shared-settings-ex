@@ -15,11 +15,11 @@ defmodule SharedSettingsTest do
     :ok
   end
 
-  describe "put/3" do
+  describe "put/2" do
     test "values are stored in cache" do
       name = unique_atom()
 
-      {:ok, key} = SharedSettings.put(name, :string, "asdf")
+      {:ok, key} = SharedSettings.put(name, "asdf")
 
       assert {:ok, %Setting{name: key, type: "string", value: "asdf"}} = EtsStore.get(key)
     end
@@ -27,7 +27,7 @@ defmodule SharedSettingsTest do
     test "values are stored in persistence" do
       name = unique_atom()
 
-      {:ok, key} = SharedSettings.put(name, :string, "asdf")
+      {:ok, key} = SharedSettings.put(name, "asdf")
 
       assert {:ok, %Setting{name: key, type: "string", value: "asdf"}} = Redis.get(key)
     end
@@ -36,17 +36,17 @@ defmodule SharedSettingsTest do
       string_name = random_string()
       name = String.to_atom(string_name)
 
-      assert {:ok, ^string_name} = SharedSettings.put(name, :string, "asdf")
+      assert {:ok, ^string_name} = SharedSettings.put(name, "asdf")
     end
 
     test "failure returns {:error, any()}" do
       name = unique_atom()
 
-      assert {:error, :incompatible_type} = SharedSettings.put(name, :string, 123)
+      assert {:error, :unsupported_type} = SharedSettings.put(name, nil)
     end
 
     test "strings are supported for setting names and types" do
-      {:ok, string_name} = SharedSettings.put(random_string(), "string", "asdf")
+      {:ok, string_name} = SharedSettings.put(random_string(), "asdf")
 
       assert {:ok, "asdf"} = SharedSettings.get(string_name)
     end
@@ -56,7 +56,7 @@ defmodule SharedSettingsTest do
     test "values are retrieved" do
       name = unique_atom()
 
-      SharedSettings.put(name, :string, "asdf")
+      SharedSettings.put(name, "asdf")
 
       assert {:ok, "asdf"} = SharedSettings.get(name)
     end
@@ -104,7 +104,7 @@ defmodule SharedSettingsTest do
     end
 
     test "string names are supported for fetching settings" do
-      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "asdf")
 
       assert {:ok, "asdf"} = SharedSettings.get(string_name)
     end
@@ -144,7 +144,7 @@ defmodule SharedSettingsTest do
     end
 
     test "string names are supported for deleting settings" do
-      {:ok, string_name} = SharedSettings.put(unique_atom(), "string", "asdf")
+      {:ok, string_name} = SharedSettings.put(unique_atom(), "asdf")
 
       :ok = SharedSettings.delete(string_name)
 
@@ -156,7 +156,7 @@ defmodule SharedSettingsTest do
     test "returns true when a setting exists" do
       name = unique_atom()
 
-      SharedSettings.put(name, :string, "asdf")
+      SharedSettings.put(name, "asdf")
 
       assert true == SharedSettings.exists?(name)
     end
@@ -170,7 +170,7 @@ defmodule SharedSettingsTest do
     test "string names are supported" do
       name = random_string()
 
-      SharedSettings.put(name, :string, "asdf")
+      SharedSettings.put(name, "asdf")
 
       assert true == SharedSettings.exists?(name)
     end
