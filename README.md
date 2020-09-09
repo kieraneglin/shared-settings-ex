@@ -109,8 +109,16 @@ All types are serialized as strings to be held within the storage adapter.
 `exists?/1` takes the name of a setting and returns a boolean reflecting its existence.
 
 ```elixir
-true = SharedSetting.delete(:signups_enabled)
-false = SharedSetting.delete(:not_real)
+true = SharedSetting.exists?(:signups_enabled)
+false = SharedSetting.exists?(:not_real)
+```
+
+### Get all
+
+`get_all/0` returns all stored settings in their raw form.  This is mainly used by the accompanying UI library but it could also be used to ensure all needed flags exist at boot time.
+
+```elixir
+{:ok, [Setting.t()]} = SharedSettings.get_all()
 ```
 
 ## License
