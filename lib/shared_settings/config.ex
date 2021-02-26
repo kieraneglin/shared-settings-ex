@@ -7,6 +7,18 @@ defmodule SharedSettings.Config do
     database: 0
   ]
 
+  def encryption_key do
+    case Application.fetch_env!(:shared_settings, :encryption_key) do
+      nil ->
+        raise "Encryption key not provided"
+
+      key ->
+        key
+        |> String.trim()
+        |> Base.decode16!()
+    end
+  end
+
   def cache_ttl do
     Application.fetch_env!(:shared_settings, :cache_ttl)
   end

@@ -2,6 +2,8 @@ defmodule SharedSettings.Setting do
   @moduledoc false
 
   alias __MODULE__
+  alias SharedSettings.Config
+  alias SharedSettings.Utilities.Encryption
 
   @enforce_keys [:name, :type, :value]
   defstruct [:name, :type, :value, encrypted: false]
@@ -24,7 +26,7 @@ defmodule SharedSettings.Setting do
         {:ok, setting}
 
       {true, {:ok, setting}} ->
-        encrypt_setting(setting)
+        {:ok, encrypt_setting(setting)}
     end
   end
 
@@ -57,8 +59,11 @@ defmodule SharedSettings.Setting do
     {:error, :unsupported_type}
   end
 
-  defp encrypt_setting(setting = %Setting{}) do
-    setting
+  defp encrypt_setting(old_setting = %Setting{value: value}) do
+    {:ok, {iv, cipher_text}} = Encryption.encrypt(Config.encryption_key(), value)
+    encrypted_value = "#{Base.encode16(iv)}|#{Base.encode16(cipher_text)}"
+
+    %Setting{old_setting | value: encrypted_value, encrypted: true}
   end
 
   defp do_restore_value(%Setting{type: "string", value: value}) do

@@ -52,15 +52,30 @@ defmodule SharedSettings.SettingTest do
       assert setting == %Setting{name: name, type: "range", value: "2,4"}
     end
 
-    test "strings are supported for type names" do
-      assert {:ok, _} = Setting.build_setting(random_string(), "test_string")
-      assert {:ok, _} = Setting.build_setting(random_string(), 123)
-      assert {:ok, _} = Setting.build_setting(random_string(), true)
-      assert {:ok, _} = Setting.build_setting(random_string(), 1..5)
-    end
-
     test "returns an error if type isn't supported" do
       assert {:error, :unsupported_type} = Setting.build_setting(random_string(), nil)
+    end
+
+    test "Can optionally encrypt all supported types" do
+      {:ok, %Setting{encrypted: true, value: str_val}} =
+        Setting.build_setting(random_string(), "str", encrypt: true)
+
+      {:ok, %Setting{encrypted: true, value: int_val}} =
+        Setting.build_setting(random_string(), 1, encrypt: true)
+
+      {:ok, %Setting{encrypted: true, value: bool_val}} =
+        Setting.build_setting(random_string(), true, encrypt: true)
+
+      {:ok, %Setting{encrypted: true, value: range_val}} =
+        Setting.build_setting(random_string(), 1..3, encrypt: true)
+
+      # This isn't an ideal test, but at least it tests that the struct key is set, that the
+      # output length is far greater than the input length, and that the iv/cipher separator exists.
+      # The round-trip test when it comes to decryption will be much more valuable
+      assert String.length(str_val) > 16 and String.contains?(str_val, "|")
+      assert String.length(int_val) > 16 and String.contains?(int_val, "|")
+      assert String.length(bool_val) > 16 and String.contains?(bool_val, "|")
+      assert String.length(range_val) > 16 and String.contains?(range_val, "|")
     end
   end
 
