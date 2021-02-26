@@ -37,15 +37,17 @@ defmodule SharedSettings do
   Failures to write to cache will not be returned as an error so long as writing to storage succeeds.
   """
   @spec put(setting_name(), any()) :: {:ok, String.t()} | {:error, any()}
-  def put(name, value) when is_atom(name) do
+  def put(_name, _value, opts \\ [])
+
+  def put(name, value, opts) when is_atom(name) do
     name
     |> Atom.to_string()
-    |> put(value)
+    |> put(value, opts)
   end
 
-  def put(name, value) when is_binary(name) do
+  def put(name, value, opts) when is_binary(name) do
     name
-    |> Setting.build_setting(value)
+    |> Setting.build_setting(value, opts)
     |> do_put()
   end
 
