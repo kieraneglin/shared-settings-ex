@@ -8,7 +8,6 @@ defmodule SharedSettings.Config do
   ]
 
   def encryption_key do
-    # TODO!  Test this `raise` when the full feature is implemented
     case Application.fetch_env!(:shared_settings, :encryption_key) do
       nil ->
         raise "Encryption key not provided"
