@@ -56,7 +56,7 @@ defmodule SharedSettings.SettingTest do
       assert {:error, :unsupported_type} = Setting.build(random_string(), nil)
     end
 
-    test "Can optionally encrypt all supported types" do
+    test "can optionally encrypt all supported types" do
       {:ok, %Setting{encrypted: true, value: str_val}} =
         Setting.build(random_string(), "str", encrypt: true)
 
@@ -108,6 +108,18 @@ defmodule SharedSettings.SettingTest do
       {:ok, setting} = Setting.build(name, 2..4)
 
       assert {:ok, 2..4} = Setting.restore(setting)
+    end
+
+    test "decrypts settings if applicable" do
+      {:ok, str_setting} = Setting.build(random_string(), "str", encrypt: true)
+      {:ok, int_setting} = Setting.build(random_string(), 1, encrypt: true)
+      {:ok, bool_setting} = Setting.build(random_string(), true, encrypt: true)
+      {:ok, range_setting} = Setting.build(random_string(), 1..3, encrypt: true)
+
+      assert {:ok, "str"} = Setting.restore(str_setting)
+      assert {:ok, 1} = Setting.restore(int_setting)
+      assert {:ok, true} = Setting.restore(bool_setting)
+      assert {:ok, 1..3} = Setting.restore(range_setting)
     end
   end
 end

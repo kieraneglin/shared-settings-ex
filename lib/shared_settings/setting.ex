@@ -31,7 +31,15 @@ defmodule SharedSettings.Setting do
   end
 
   def restore(setting) do
-    do_restore(setting)
+    case setting do
+      %Setting{encrypted: true} ->
+        setting
+        |> decrypt_setting()
+        |> do_restore()
+
+      _ ->
+        do_restore(setting)
+    end
   end
 
   defp do_build(name, value) when is_binary(value) do
@@ -64,6 +72,18 @@ defmodule SharedSettings.Setting do
     encrypted_value = "#{Base.encode16(iv)}|#{Base.encode16(cipher_text)}"
 
     %Setting{old_setting | value: encrypted_value, encrypted: true}
+  end
+
+  defp decrypt_setting(old_setting = %Setting{value: value, encrypted: true}) do
+    [iv, cipher_text] =
+      value
+      |> String.split("|")
+      |> Enum.map(&String.trim/1)
+      |> Enum.map(&Base.decode16!/1)
+
+    {:ok, plaintext_value} = Encryption.decrypt(Config.encryption_key(), iv, cipher_text)
+
+    %Setting{old_setting | value: plaintext_value, encrypted: false}
   end
 
   defp do_restore(%Setting{type: "string", value: value}) do

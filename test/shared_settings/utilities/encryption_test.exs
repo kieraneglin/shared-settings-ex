@@ -4,19 +4,19 @@ defmodule SharedSettings.Utilities.EncryptionTest do
   alias SharedSettings.Utilities.Encryption
 
   describe "generate_aes_key" do
-    test "Returns key as bitstring" do
+    test "returns key as bitstring" do
       key = Encryption.generate_aes_key()
 
       assert Kernel.is_bitstring(key)
     end
 
-    test "Returns a 32 byte (256 bit) key by default" do
+    test "returns a 32 byte (256 bit) key by default" do
       key = Encryption.generate_aes_key()
 
       assert byte_size(key) == 32
     end
 
-    test "Key size can be manually specified" do
+    test "key size can be manually specified" do
       key = Encryption.generate_aes_key(16)
 
       assert byte_size(key) == 16
@@ -24,7 +24,7 @@ defmodule SharedSettings.Utilities.EncryptionTest do
   end
 
   describe "encrypt" do
-    test "Returns IV and data successfully" do
+    test "returns IV and data successfully" do
       key = Encryption.generate_aes_key()
 
       {:ok, {iv, data}} = Encryption.encrypt(key, "supersecret")
@@ -33,7 +33,7 @@ defmodule SharedSettings.Utilities.EncryptionTest do
       assert is_bitstring(data)
     end
 
-    test "Returns a errors in an Elixir-friendly format" do
+    test "returns a errors in an Elixir-friendly format" do
       key = Encryption.generate_aes_key(12)
 
       assert {:error, :bad_key_size} = Encryption.encrypt(key, "supersecret")
@@ -41,7 +41,7 @@ defmodule SharedSettings.Utilities.EncryptionTest do
   end
 
   describe "decrypt" do
-    test "Decrypts data successfully, confirming roundtrip encryption" do
+    test "decrypts data successfully, confirming roundtrip encryption" do
       key = Encryption.generate_aes_key()
       {:ok, {iv, enc_data}} = Encryption.encrypt(key, "supersecret")
 
@@ -50,7 +50,7 @@ defmodule SharedSettings.Utilities.EncryptionTest do
       assert plain_text == "supersecret"
     end
 
-    test "Returns a errors in an Elixir-friendly format" do
+    test "returns a errors in an Elixir-friendly format" do
       bad_key = Encryption.generate_aes_key(12)
       good_key = Encryption.generate_aes_key(32)
 
