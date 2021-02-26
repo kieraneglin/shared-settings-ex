@@ -38,20 +38,15 @@ defmodule SharedSettings do
   """
   @spec put(setting_name(), any()) :: {:ok, String.t()} | {:error, any()}
   def put(name, value) when is_atom(name) do
-    setting_result =
-      name
-      |> Atom.to_string()
-      |> Setting.build_setting(value)
-
-    do_put(setting_result)
+    name
+    |> Atom.to_string()
+    |> put(value)
   end
 
   def put(name, value) when is_binary(name) do
-    setting_result =
-      name
-      |> Setting.build_setting(value)
-
-    do_put(setting_result)
+    name
+    |> Setting.build_setting(value)
+    |> do_put()
   end
 
   defp do_put(setting_result) do
