@@ -16,7 +16,7 @@ defmodule SharedSettings.MixProject do
   def application do
     [
       mod: {SharedSettings.Application, []},
-      extra_applications: [:logger, :redix]
+      extra_applications: [:logger, :redix, :crypto]
     ]
   end
 
