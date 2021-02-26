@@ -5,12 +5,13 @@ defmodule SharedSettingsTest do
 
   alias SharedSettings.Config
   alias SharedSettings.Setting
-  alias SharedSettings.Cache.EtsStore
-  alias SharedSettings.Persistence.Redis
+
+  @cache Config.cache_adapter()
+  @store Config.storage_adapter()
 
   setup do
     flush_redis()
-    EtsStore.flush()
+    @cache.flush()
 
     :ok
   end
@@ -21,7 +22,7 @@ defmodule SharedSettingsTest do
 
       {:ok, key} = SharedSettings.put(name, "asdf")
 
-      assert {:ok, %Setting{name: key, type: "string", value: "asdf"}} = EtsStore.get(key)
+      assert {:ok, %Setting{name: ^key, type: "string", value: "asdf"}} = @cache.get(key)
     end
 
     test "values are stored in persistence" do
@@ -29,7 +30,7 @@ defmodule SharedSettingsTest do
 
       {:ok, key} = SharedSettings.put(name, "asdf")
 
-      assert {:ok, %Setting{name: key, type: "string", value: "asdf"}} = Redis.get(key)
+      assert {:ok, %Setting{name: ^key, type: "string", value: "asdf"}} = @store.get(key)
     end
 
     test "success returns {:ok, String.t()}" do
@@ -50,6 +51,36 @@ defmodule SharedSettingsTest do
 
       assert {:ok, "asdf"} = SharedSettings.get(string_name)
     end
+
+    test "encrypt flag stores values with encryption" do
+      name = unique_atom()
+
+      {:ok, key} = SharedSettings.put(name, "secret", encrypt: true)
+
+      {:ok, %Setting{value: ets_val, encrypted: true}} = @cache.get(key)
+      {:ok, %Setting{value: store_val, encrypted: true}} = @store.get(key)
+
+      # As said in `setting_test.exs`, this isn't an ideal test but it has its merits.
+      # It checks that the value is longer than expected and that the iv/cipher separator exists.
+      # The round-trip encryption test will be more valuable
+      assert ets_val == store_val
+      assert String.length(ets_val) > 16 and String.contains?(ets_val, "|")
+      assert String.length(store_val) > 16 and String.contains?(store_val, "|")
+    end
+
+    test "encryption blows up if no encryption key is specified" do
+      old_key = Application.get_env(:shared_settings, :encryption_key)
+      Application.put_env(:shared_settings, :encryption_key, nil)
+
+      exception =
+        assert_raise RuntimeError, fn ->
+          SharedSettings.put(unique_atom(), "secret", encrypt: true)
+        end
+
+      assert exception.message == "Encryption key not provided"
+
+      Application.put_env(:shared_settings, :encryption_key, old_key)
+    end
   end
 
   describe "get/1" do
@@ -67,8 +98,8 @@ defmodule SharedSettingsTest do
       cache_setting = %Setting{name: string_name, type: "string", value: "from cache"}
       store_setting = %Setting{name: string_name, type: "string", value: "from store"}
 
-      EtsStore.put(cache_setting)
-      Redis.put(store_setting)
+      @cache.put(cache_setting)
+      @store.put(store_setting)
 
       assert {:ok, "from cache"} = SharedSettings.get(name)
     end
@@ -78,7 +109,7 @@ defmodule SharedSettingsTest do
       name = String.to_atom(string_name)
       store_setting = %Setting{name: string_name, type: "string", value: "from store"}
 
-      Redis.put(store_setting)
+      @store.put(store_setting)
 
       assert {:ok, "from store"} = SharedSettings.get(name)
     end
@@ -89,8 +120,8 @@ defmodule SharedSettingsTest do
       cache_setting = %Setting{name: string_name, type: "string", value: "from cache"}
       store_setting = %Setting{name: string_name, type: "string", value: "from store"}
 
-      EtsStore.put(cache_setting)
-      Redis.put(store_setting)
+      @cache.put(cache_setting)
+      @store.put(store_setting)
 
       timetravel by: Config.cache_ttl() + 1 do
         assert {:ok, "from store"} = SharedSettings.get(name)
@@ -108,15 +139,30 @@ defmodule SharedSettingsTest do
 
       assert {:ok, "asdf"} = SharedSettings.get(string_name)
     end
+
+    test "encrypted settings are retrieved and decrypted" do
+      name = unique_atom()
+      value = 1234
+
+      {:ok, key} = SharedSettings.put(name, value, encrypt: true)
+      {:ok, %Setting{value: ets_val, encrypted: true}} = @cache.get(key)
+      {:ok, %Setting{value: store_val, encrypted: true}} = @store.get(key)
+
+      {:ok, fetched_val} = SharedSettings.get(name)
+
+      assert ets_val != value
+      assert store_val != value
+      assert fetched_val == value
+    end
   end
 
   describe "get_all/0" do
     test "returns all settings" do
-      # More tests exist in the Redis module tests.  This is more of a sanity check
-      Redis.put(%Setting{name: random_string(), type: "string", value: random_string()})
-      Redis.put(%Setting{name: random_string(), type: "string", value: random_string()})
+      # More tests exist in the @store module tests.  This is more of a sanity check
+      @store.put(%Setting{name: random_string(), type: "string", value: random_string()})
+      @store.put(%Setting{name: random_string(), type: "string", value: random_string()})
 
-      {:ok, settings} = Redis.get_all()
+      {:ok, settings} = @store.get_all()
 
       assert length(settings) == 2
     end
@@ -126,7 +172,7 @@ defmodule SharedSettingsTest do
     test "values are deleted from cache" do
       string_name = random_string()
       name = String.to_atom(string_name)
-      EtsStore.put(%Setting{name: string_name, type: "string", value: "from cache"})
+      @cache.put(%Setting{name: string_name, type: "string", value: "from cache"})
 
       SharedSettings.delete(name)
 
@@ -136,7 +182,7 @@ defmodule SharedSettingsTest do
     test "values are deleted from storage" do
       string_name = random_string()
       name = String.to_atom(string_name)
-      Redis.put(%Setting{name: string_name, type: "string", value: "from store"})
+      @store.put(%Setting{name: string_name, type: "string", value: "from store"})
 
       SharedSettings.delete(name)
 
