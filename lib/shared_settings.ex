@@ -47,7 +47,7 @@ defmodule SharedSettings do
 
   def put(name, value, opts) when is_binary(name) do
     name
-    |> Setting.build_setting(value, opts)
+    |> Setting.build(value, opts)
     |> do_put()
   end
 
@@ -92,7 +92,7 @@ defmodule SharedSettings do
 
   defp do_get(stringified_name) do
     case @cache.get(stringified_name) do
-      {:ok, setting} -> Setting.restore_value(setting)
+      {:ok, setting} -> Setting.restore(setting)
       {:error, :miss, _} -> fetch_from_persistence(stringified_name)
     end
   end
@@ -173,7 +173,7 @@ defmodule SharedSettings do
 
   defp fetch_from_persistence(name) do
     case @store.get(name) do
-      {:ok, setting} -> Setting.restore_value(setting)
+      {:ok, setting} -> Setting.restore(setting)
       error -> error
     end
   end
