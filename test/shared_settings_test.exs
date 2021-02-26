@@ -10,8 +10,15 @@ defmodule SharedSettingsTest do
   @store Config.storage_adapter()
 
   setup do
+    # Run before just in case there are any values left from other tests
     flush_redis()
     @cache.flush()
+
+    # Get 'em twice to ensure we've fully cleaned up after tests have run
+    on_exit(fn ->
+      flush_redis()
+      @cache.flush()
+    end)
 
     :ok
   end
