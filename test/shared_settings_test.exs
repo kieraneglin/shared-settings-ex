@@ -164,14 +164,32 @@ defmodule SharedSettingsTest do
   end
 
   describe "get_all/0" do
-    test "returns all settings" do
-      # More tests exist in the @store module tests.  This is more of a sanity check
-      @store.put(%Setting{name: random_string(), type: "string", value: random_string()})
-      @store.put(%Setting{name: random_string(), type: "string", value: random_string()})
+    test "returns settings in their raw form" do
+      name = random_string()
+      {:ok, _} = SharedSettings.put(name, "asdf")
 
-      {:ok, settings} = @store.get_all()
+      {:ok, [setting]} = SharedSettings.get_all()
 
-      assert length(settings) == 2
+      assert setting == %Setting{
+               encrypted: false,
+               name: name,
+               type: "string",
+               value: "asdf"
+             }
+    end
+
+    test "decrypted values are returned with `encrypted` flag maintained" do
+      name = random_string()
+      {:ok, _} = SharedSettings.put(name, "asdf", encrypt: true)
+
+      {:ok, [setting]} = SharedSettings.get_all()
+
+      assert setting == %Setting{
+               encrypted: true,
+               name: name,
+               type: "string",
+               value: "asdf"
+             }
     end
   end
 

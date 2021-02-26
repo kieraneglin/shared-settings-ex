@@ -102,7 +102,7 @@ defmodule SharedSettings do
 
   This method differs from others in the fact that:
   1) The cache isn't hit, only the source of truth (ie: the store)
-  2) The raw `Setting.t()` is returned instead of the final re-hydrated value
+  2) The raw `Setting.t()` is returned instead of the final re-hydrated value (save for decryption)
 
   Both of these changes come from the fact that this is meant to feed the UI.
   The reason it's exposed on the main module is that there's a secondary personal usecase
@@ -118,7 +118,18 @@ defmodule SharedSettings do
   """
   @spec get_all() :: {:ok, [Setting.t()]} | {:error, any()}
   def get_all do
-    @store.get_all()
+    {:ok, raw_settings} = @store.get_all()
+
+    settings =
+      Enum.map(raw_settings, fn setting ->
+        # Handles decryption if needed.
+        # Maintains `encrypted` state for UI purposes
+        {:ok, value} = Setting.restore(setting)
+
+        %Setting{setting | value: value}
+      end)
+
+    {:ok, settings}
   end
 
   @doc ~S"""
