@@ -8,7 +8,7 @@ defmodule SharedSettings.Setting do
   @enforce_keys [:name, :type, :value]
   defstruct [:name, :type, :value, encrypted: false]
 
-  @type t :: %SharedSettings.Setting{
+  @type t :: %Setting{
           name: String.t(),
           type: String.t(),
           value: String.t(),
