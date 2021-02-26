@@ -10,13 +10,15 @@ defmodule SharedSettings.Cache.EtsStoreTest do
   setup do
     EtsStore.flush()
     name = random_string()
-    setting = %Setting{name: name, type: "string", value: "test string"}
+    {:ok, setting} = Setting.build(name, "test string")
+    {:ok, enc_setting} = Setting.build(name, "secret string", encrypt: true)
 
-    {:ok, name: name, setting: setting}
+    {:ok, name: name, setting: setting, enc_setting: enc_setting}
   end
 
   describe "put/1" do
     test "stores a setting", %{name: name, setting: setting} do
+      # Also tests the equivalent `get`
       assert {:error, :miss, :not_found} = EtsStore.get(name)
 
       EtsStore.put(setting)
@@ -37,15 +39,16 @@ defmodule SharedSettings.Cache.EtsStoreTest do
     test "returns {:ok, String.t()}", %{name: name, setting: setting} do
       assert {:ok, ^name} = EtsStore.put(setting)
     end
+
+    test "stores encrypted settings", %{name: name, enc_setting: enc_setting} do
+      # Also tests the equivalent `get`
+      EtsStore.put(enc_setting)
+
+      assert {:ok, ^enc_setting} = EtsStore.get(name)
+    end
   end
 
   describe "get/1" do
-    test "returns a setting if found", %{name: name, setting: setting} do
-      EtsStore.put(setting)
-
-      assert {:ok, ^setting} = EtsStore.get(name)
-    end
-
     test "returns :not_found error if setting not found", %{name: name} do
       assert {:error, :miss, :not_found} = EtsStore.get(name)
     end
