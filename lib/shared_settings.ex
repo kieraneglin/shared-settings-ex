@@ -84,9 +84,9 @@ defmodule SharedSettings do
   """
   @spec get(setting_name()) :: {:ok, any()} | {:error, any()}
   def get(name) when is_atom(name) do
-    stringified_name = Atom.to_string(name)
-
-    do_get(stringified_name)
+    name
+    |> Atom.to_string()
+    |> do_get()
   end
 
   def get(name) when is_binary(name) do
@@ -139,9 +139,9 @@ defmodule SharedSettings do
   """
   @spec delete(setting_name()) :: :ok
   def delete(name) when is_atom(name) do
-    stringified_name = Atom.to_string(name)
-
-    do_delete(stringified_name)
+    name
+    |> Atom.to_string()
+    |> do_delete()
   end
 
   def delete(name) when is_binary(name) do
