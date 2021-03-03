@@ -1,8 +1,8 @@
 defmodule SharedSettings.Utilities.Encryption do
   @moduledoc false
 
+  @init_vec_size 16
   @aes_block_size 16
-  @init_vector_size 16
   @encryption_key_size 32
 
   def generate_aes_key(size \\ @encryption_key_size) do
@@ -10,7 +10,7 @@ defmodule SharedSettings.Utilities.Encryption do
   end
 
   def encrypt(key, clear_text) do
-    init_vec = generate_aes_key(@init_vector_size)
+    init_vec = generate_aes_key(@init_vec_size)
     payload = pad(clear_text, @aes_block_size)
 
     try do
