@@ -6,12 +6,12 @@ Heavily inspired by [Fun with Flags][fwf] and [Flipper][flipper].
 
 ## Installation
 
-Shared Settings won't be available in Hex until all supporting libraries are completed.  Until then, using git is recommended:
-
 ```elixir
 def deps do
   [
-    {:shared_settings, git: "https://github.com/kieraneglin/shared-settings-ex.git"}
+    {:shared_settings, "~> 0.2.0"},
+    # Optional
+    {:shared_settings_ui, "~> 0.2.0"}
   ]
 end
 ```
