@@ -20,7 +20,7 @@ defmodule SharedSettings.Store do
   @doc """
   Retrieves a setting by name.
   """
-  @callback get(name :: String.t()) :: {:ok, Setting.t()}
+  @callback get(name :: String.t()) :: {:ok, Setting.t()} | {:error, any()}
 
   @doc """
   Retrieves all settings
