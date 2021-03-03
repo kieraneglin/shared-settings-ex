@@ -29,7 +29,7 @@ if Code.ensure_loaded?(Redix) do
 
       case Redix.command(@conn, ["HGETALL", hash_name]) do
         {:ok, result} -> parse_fetch_result(result)
-        error -> error
+        {:error, msg} -> {:error, msg}
       end
     end
 
@@ -50,7 +50,7 @@ if Code.ensure_loaded?(Redix) do
       hash_name = format_name(setting_name)
       serialized_data = serialize_setting(setting)
 
-      case Redix.command(@conn, ["HSET" | [hash_name | serialized_data]]) do
+      case Redix.command(@conn, ["HSET", hash_name | serialized_data]) do
         {:ok, _} -> {:ok, setting_name}
         error -> error
       end
@@ -76,12 +76,17 @@ if Code.ensure_loaded?(Redix) do
       "#{@prefix}:#{setting_name}"
     end
 
-    defp serialize_setting(%Setting{name: name, type: type, value: value}) do
-      ["name", name, "type", type, "value", value]
+    defp serialize_setting(%Setting{name: name, type: type, value: value, encrypted: encrypted}) do
+      serialize_encryption_flag = if encrypted, do: "1", else: "0"
+
+      ["name", name, "type", type, "value", value, "encrypted", serialize_encryption_flag]
     end
 
-    defp deserialize_setting([_n, name, _t, type, _v, value]) do
-      %Setting{name: name, type: type, value: value}
+    defp deserialize_setting(payload) do
+      setting_data = %{name: name, type: type, value: value} = list_to_map(payload)
+      deserialize_encryption_flag = if setting_data[:encrypted] == "1", do: true, else: false
+
+      %Setting{name: name, type: type, value: value, encrypted: deserialize_encryption_flag}
     end
 
     defp keys_by_prefix(prefix) do
@@ -103,6 +108,15 @@ if Code.ensure_loaded?(Redix) do
         error ->
           error
       end
+    end
+
+    # Since redis values come back as a list without promise of maintained order,
+    # this lets us use a more ergonomic map instead
+    defp list_to_map(list) do
+      list
+      |> Enum.chunk_every(2)
+      |> Enum.map(fn [k, v] -> {String.to_existing_atom(k), v} end)
+      |> Map.new()
     end
   end
 end

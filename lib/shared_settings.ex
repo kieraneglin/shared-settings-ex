@@ -37,21 +37,18 @@ defmodule SharedSettings do
   Failures to write to cache will not be returned as an error so long as writing to storage succeeds.
   """
   @spec put(setting_name(), any()) :: {:ok, String.t()} | {:error, any()}
-  def put(name, value) when is_atom(name) do
-    setting_result =
-      name
-      |> Atom.to_string()
-      |> Setting.build_setting(value)
+  def put(_name, _value, opts \\ [])
 
-    do_put(setting_result)
+  def put(name, value, opts) when is_atom(name) do
+    name
+    |> Atom.to_string()
+    |> put(value, opts)
   end
 
-  def put(name, value) when is_binary(name) do
-    setting_result =
-      name
-      |> Setting.build_setting(value)
-
-    do_put(setting_result)
+  def put(name, value, opts) when is_binary(name) do
+    name
+    |> Setting.build(value, opts)
+    |> do_put()
   end
 
   defp do_put(setting_result) do
@@ -84,9 +81,9 @@ defmodule SharedSettings do
   """
   @spec get(setting_name()) :: {:ok, any()} | {:error, any()}
   def get(name) when is_atom(name) do
-    stringified_name = Atom.to_string(name)
-
-    do_get(stringified_name)
+    name
+    |> Atom.to_string()
+    |> do_get()
   end
 
   def get(name) when is_binary(name) do
@@ -95,7 +92,7 @@ defmodule SharedSettings do
 
   defp do_get(stringified_name) do
     case @cache.get(stringified_name) do
-      {:ok, setting} -> Setting.restore_value(setting)
+      {:ok, setting} -> Setting.restore(setting)
       {:error, :miss, _} -> fetch_from_persistence(stringified_name)
     end
   end
@@ -105,7 +102,7 @@ defmodule SharedSettings do
 
   This method differs from others in the fact that:
   1) The cache isn't hit, only the source of truth (ie: the store)
-  2) The raw `Setting.t()` is returned instead of the final re-hydrated value
+  2) The raw `Setting.t()` is returned instead of the final re-hydrated value (save for decryption)
 
   Both of these changes come from the fact that this is meant to feed the UI.
   The reason it's exposed on the main module is that there's a secondary personal usecase
@@ -121,7 +118,18 @@ defmodule SharedSettings do
   """
   @spec get_all() :: {:ok, [Setting.t()]} | {:error, any()}
   def get_all do
-    @store.get_all()
+    {:ok, raw_settings} = @store.get_all()
+
+    settings =
+      Enum.map(raw_settings, fn setting ->
+        # Handles decryption if needed.
+        # Maintains `encrypted` state for UI purposes
+        {:ok, value} = Setting.restore(setting)
+
+        %Setting{setting | value: value}
+      end)
+
+    {:ok, settings}
   end
 
   @doc ~S"""
@@ -139,9 +147,9 @@ defmodule SharedSettings do
   """
   @spec delete(setting_name()) :: :ok
   def delete(name) when is_atom(name) do
-    stringified_name = Atom.to_string(name)
-
-    do_delete(stringified_name)
+    name
+    |> Atom.to_string()
+    |> do_delete()
   end
 
   def delete(name) when is_binary(name) do
@@ -176,7 +184,7 @@ defmodule SharedSettings do
 
   defp fetch_from_persistence(name) do
     case @store.get(name) do
-      {:ok, setting} -> Setting.restore_value(setting)
+      {:ok, setting} -> Setting.restore(setting)
       error -> error
     end
   end

@@ -8,9 +8,10 @@ defmodule SharedSettings.Persistence.RedisTest do
   setup do
     flush_redis()
     name = random_string()
-    setting = %Setting{name: name, type: "string", value: "test string"}
+    {:ok, setting} = Setting.build(name, "test setting")
+    {:ok, enc_setting} = Setting.build(name, "secret setting", encrypt: true)
 
-    {:ok, name: name, setting: setting}
+    {:ok, name: name, setting: setting, enc_setting: enc_setting}
   end
 
   describe "put/1" do
@@ -24,9 +25,15 @@ defmodule SharedSettings.Persistence.RedisTest do
 
     test "overwrites existing setting", %{name: name, setting: setting} do
       Redis.put(setting)
-      assert {:ok, ^setting} = Redis.get(name)
+      assert {:ok, wow} = Redis.get(name)
 
-      new_setting = %Setting{name: name, type: "string", value: "new test string"}
+      new_setting = %Setting{
+        name: name,
+        type: "string",
+        value: "new test string",
+        encrypted: false
+      }
+
       Redis.put(new_setting)
 
       assert {:ok, ^new_setting} = Redis.get(name)
@@ -34,6 +41,10 @@ defmodule SharedSettings.Persistence.RedisTest do
 
     test "returns {:ok, String.t()}", %{name: name, setting: setting} do
       assert {:ok, ^name} = Redis.put(setting)
+    end
+
+    test "stores an encrypted setting", %{name: name, enc_setting: enc_setting} do
+      assert {:ok, ^name} = Redis.put(enc_setting)
     end
   end
 
@@ -47,13 +58,36 @@ defmodule SharedSettings.Persistence.RedisTest do
     test "returns :not_found error if setting not found", %{name: name} do
       assert {:error, :not_found} = Redis.get(name)
     end
+
+    test "returns a decrypted setting", %{name: name, enc_setting: enc_setting} do
+      Redis.put(enc_setting)
+
+      assert {:ok, ^enc_setting} = Redis.get(name)
+    end
   end
 
   describe "get_all/0" do
     test "returns all settings" do
-      setting_one = %Setting{name: random_string(), type: "string", value: random_string()}
-      setting_two = %Setting{name: random_string(), type: "string", value: random_string()}
-      setting_three = %Setting{name: random_string(), type: "string", value: random_string()}
+      setting_one = %Setting{
+        name: random_string(),
+        type: "string",
+        value: random_string(),
+        encrypted: false
+      }
+
+      setting_two = %Setting{
+        name: random_string(),
+        type: "string",
+        value: random_string(),
+        encrypted: false
+      }
+
+      setting_three = %Setting{
+        name: random_string(),
+        type: "string",
+        value: random_string(),
+        encrypted: true
+      }
 
       Redis.put(setting_one)
       Redis.put(setting_two)

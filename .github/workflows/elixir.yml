@@ -47,3 +47,6 @@ jobs:
 
     - name: Run tests
       run: mix test
+      env:
+        # Not actually secret but keeps this file neat
+        SHARED_SETTINGS_KEY: ${{ secrets.SHARED_SETTINGS_KEY }}

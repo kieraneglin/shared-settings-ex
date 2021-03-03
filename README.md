@@ -1,8 +1,8 @@
 # Shared Settings
 
-Shared Settings is a simple library for runtime settings and configuration in Elixir.
+Shared Settings is a simple library for managing runtime settings in Elixir with optional support for encryption and Ruby.
 
-Heavily inspired by [Fun with Flags][fwf]
+Heavily inspired by [Fun with Flags][fwf] and [Flipper][flipper].
 
 ## Installation
 
@@ -23,6 +23,7 @@ config :shared_settings,
   cache_ttl: 300, # Set to 0 to disable
   cache_adapter: SharedSettings.Cache.EtsStore,
   storage_adapter: SharedSettings.Persistence.Redis,
+  encryption_key: "..." # Optional - can be generated with `mix SharedSettings.CreateKey`
   redis: [ # Can also take a URI string
     host: "localhost",
     port: 6379,
@@ -30,7 +31,7 @@ config :shared_settings,
   ]
 ```
 
-To use the optional UI, check out the [Shared Settings UI Elixir][ss-ui-ex] library.
+To use the optional UI, check out the [Shared Settings UI Elixir][ss-ui-ex] library.  Ruby support is provided by the [shared-settings][ss-rb] Gem.
 
 ## Why "shared" settings?
 
@@ -58,6 +59,15 @@ Instead, this library came from a personal need to share runtime settings betwee
 
 Storage was made to be simple so creating custom adapters would be trivial.  Currently only a Redis adapter is shipped, but creating a SQL or NoSQL adapter would be simple.  There is some documentation around this in the `SharedSettings.Store` module.
 
+## Encryption
+
+Encryption is implemented as AES256.  If you choose to provide an encryption key, specified setting values within your storage adapter will be encrypted.  Nothing else about the setting, including its name, will be encrypted.  Once an encrypted setting is requested via `get/1` it's automatically decrypted so the plaintext value is returned.
+
+```elixir
+{:ok, _} = SharedSettings.put(:client_id, "supersecret", encrypt: true)
+{:ok, "supersecret"} = SharedSettings.get(:client_id)
+```
+
 ## Usage
 
 The API is quite simple.  For most cases, you have `put/2`, `get/1`, `delete/1`, and `exists?/1`.  
@@ -75,15 +85,15 @@ All types are serialized as strings to be held within the storage adapter.
 `put/2` takes a name as well as a value with a supported type. It returns a tuple of `{:ok, setting_name}` where `setting_name` is a string.
 
 ```elixir
-{:ok, _} = SharedSetting.put(:signups_enabled, true)
-{:ok, _} = SharedSetting.put(:referral_bonus, 52)
+{:ok, _} = SharedSettings.put(:signups_enabled, true)
+{:ok, _} = SharedSettings.put(:referral_bonus, 52, encrypt: true)
 ```
 
 `put` will overwrite old settings if the provided name already exists.  This means there's no method for updating - replacement is the way to go:
 
 ```elixir
-{:ok, _} = SharedSetting.put(:confusing_setting, true)
-{:ok, _} = SharedSetting.put(:confusing_setting, 2..7)
+{:ok, _} = SharedSettings.put(:confusing_setting, true)
+{:ok, _} = SharedSettings.put(:confusing_setting, 2..7)
 ```
 
 ### Get
@@ -91,8 +101,8 @@ All types are serialized as strings to be held within the storage adapter.
 `get/1` takes the name of a setting and returns `{:ok, original_value}`.  `{:error, :not_found}` is returned if the setting doesn't exist.
 
 ```elixir
-{:ok, 0..5} = SharedSetting.get(:permitted_ranks)
-{:error, :not_found} = SharedSetting.get(:not_real)
+{:ok, 0..5} = SharedSettings.get(:permitted_ranks)
+{:error, :not_found} = SharedSettings.get(:not_real)
 ```
 
 ### Delete
@@ -100,8 +110,8 @@ All types are serialized as strings to be held within the storage adapter.
 `delete/1` takes the name of a setting and removes it from cache and storage.  `:ok` is retuned no matter what so it's safe to call delete on settings that may not exist.
 
 ```elixir
-:ok = SharedSetting.delete(:contrived_example)
-:ok = SharedSetting.delete(:not_real)
+:ok = SharedSettings.delete(:contrived_example)
+:ok = SharedSettings.delete(:not_real)
 ```
 
 ### Exists?
@@ -109,8 +119,8 @@ All types are serialized as strings to be held within the storage adapter.
 `exists?/1` takes the name of a setting and returns a boolean reflecting its existence.
 
 ```elixir
-true = SharedSetting.exists?(:signups_enabled)
-false = SharedSetting.exists?(:not_real)
+true = SharedSettings.exists?(:signups_enabled)
+false = SharedSettings.exists?(:not_real)
 ```
 
 ### Get all
@@ -125,7 +135,7 @@ false = SharedSetting.exists?(:not_real)
 
 MIT License
 
-Copyright 2020
+Copyright 2021
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -134,4 +144,6 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 [fwf]: https://github.com/tompave/fun_with_flags
+[flipper]: https://github.com/jnunemaker/flipper
+[ss-rb]: https://github.com/kieraneglin/shared-settings-rb
 [ss-ui-ex]: https://github.com/kieraneglin/shared-settings-ui-ex
