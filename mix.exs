@@ -6,6 +6,8 @@ defmodule SharedSettings.MixProject do
       app: :shared_settings,
       version: "0.1.0",
       elixir: "~> 1.10",
+      description: description(),
+      package: package(),
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       elixirc_paths: elixirc_paths(Mix.env())
@@ -29,6 +31,17 @@ defmodule SharedSettings.MixProject do
       {:redix, "~> 0.9", optional: true},
       {:credo, "~> 1.4", only: [:dev, :test], runtime: false},
       {:mock, "~> 0.3.0", only: :test}
+    ]
+  end
+
+  defp description() do
+    "Manage and encrypt settings for your Elixir app with optional support for Ruby"
+  end
+
+  defp package() do
+    [
+      licenses: ["MIT"],
+      links: %{repo: "https://github.com/kieraneglin/shared-settings-ex"}
     ]
   end
 end
