@@ -1,4 +1,4 @@
-import Config
+use Mix.Config
 
 config :shared_settings,
   encryption_key: System.get_env("SHARED_SETTINGS_KEY"),
