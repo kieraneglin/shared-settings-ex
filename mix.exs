@@ -5,7 +5,7 @@ defmodule SharedSettings.MixProject do
     [
       app: :shared_settings,
       version: "0.2.0",
-      elixir: "~> 1.10",
+      elixir: "~> 1.8",
       description: description(),
       package: package(),
       start_permanent: Mix.env() == :prod,

@@ -1,11 +1,24 @@
 name: Elixir CI
 
-on: push
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build and test
     runs-on: ubuntu-latest
+    if: "! contains(toJSON(github.event.commits.*.message), '[skip ci]')"
+
+    strategy:
+      matrix:
+        otp: ['22.x', '23.x']
+        elixir: ['1.8.x', '1.9.x', '1.10.x', '1.11.x']
 
     services:
       redis:
@@ -24,21 +37,41 @@ jobs:
     - name: Set up Elixir
       uses: actions/setup-elixir@v1
       with:
-        elixir-version: '1.10.3'
-        otp-version: '22.3'
+        otp-version: ${{matrix.otp}}
+        elixir-version: ${{matrix.elixir}}
+        experimental-otp: true
 
     - name: Restore dependencies cache
       uses: actions/cache@v2
+      id: deps-cache
       with:
         path: deps
-        key: ${{ runner.os }}-mix-${{ hashFiles('**/mix.lock') }}
-        restore-keys: ${{ runner.os }}-mix-
+        key: deps-${{ runner.os }}-${{matrix.otp}}-${{matrix.elixir}}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        restore-keys: |
+          deps-${{ runner.os }}-${{matrix.otp}}-${{matrix.elixir}}-
+
+    - name: Restore build cache
+      uses: actions/cache@v2
+      id: build-cache
+      with:
+        path: _build/test
+        key: build-test-${{ runner.os }}-${{matrix.otp}}-${{matrix.elixir}}-${{ hashFiles(format('{0}{1}', github.workspace, '/mix.lock')) }}
+        restore-keys: |
+          build-test-${{ runner.os }}-${{matrix.otp}}-${{matrix.elixir}}-
 
     - name: Install dependencies
+      if: steps.deps-cache.outputs.cache-hit != 'true'
       run: mix deps.get
 
     - name: Check formatting
       run: mix format --check-formatted
+
+    - name: Compile dependencies
+      if: steps.build-cache.outputs.cache-hit != 'true'
+      run: mix deps.compile
+
+    - name: Compile project
+      run: mix compile --warnings-as-errors
 
     - name: Check Credo
       run: mix credo --only warning
@@ -50,3 +83,6 @@ jobs:
       env:
         # Not actually secret but keeps this file neat
         SHARED_SETTINGS_KEY: ${{ secrets.SHARED_SETTINGS_KEY }}
+
+    - name: Clean up unused deps (used for cache)
+      run: mix deps.clean --unused --unlock

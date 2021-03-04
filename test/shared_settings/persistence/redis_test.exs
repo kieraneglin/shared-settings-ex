@@ -20,12 +20,12 @@ defmodule SharedSettings.Persistence.RedisTest do
 
       Redis.put(setting)
 
-      assert {:ok, setting} = Redis.get(name)
+      assert {:ok, ^setting} = Redis.get(name)
     end
 
     test "overwrites existing setting", %{name: name, setting: setting} do
       Redis.put(setting)
-      assert {:ok, wow} = Redis.get(name)
+      assert {:ok, _} = Redis.get(name)
 
       new_setting = %Setting{
         name: name,
